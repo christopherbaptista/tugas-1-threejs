@@ -1,0 +1,504 @@
+<!-- 
+Author  : Christopher Baptista
+NRP     : 05111940000001
+Kelas   : Grafkom(D) 
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tugas 1 - Christopher Baptista</title>
+    <script src="//cdn.rawgit.com/mrdoob/three.js/master/build/three.min.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            background: #0D1117;
+        }
+
+        #myCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #lightList {
+            height: 50px;
+            width: 150px;
+            font-size: 18px;
+            background: blue;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <select name="lightList" id="lightList" onchange="setLight(event)">
+        <option value="0">Select Light:</option>
+        <option value="1">Ambient Light</option>
+        <option value="2">Directional Light</option>
+        <option value="3">Hemisphere Light</option>
+        <option value="4">Point Light</option>
+        <option value="5">Spot Light</option>
+    </select>
+    <canvas id="myCanvas">
+        Peramban tidak mendukung kanvas HTML5
+    </canvas>
+</body>
+</html>
+<script>
+    const canvas = document.querySelector('#myCanvas');
+    const renderer = new THREE.WebGLRenderer({canvas});
+
+    const fov = 40;
+    const aspect = 2;
+    const near = 0.1;
+    const far = 1000;
+    const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+    camera.position.z = 50;
+    camera.position.y = 0;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xD1117);
+
+    const objects = [];
+    const spread = 20;
+
+    function addObject(x, y, obj) {
+        obj.position.x = x * spread;
+        obj.position.y = y * spread;
+
+        scene.add(obj);
+        objects.push(obj);
+    }
+
+    // Light: AmbientLight, HemisphereLight, DirectionalLight, PointLight, SpotLight
+    const lightAmbient = new THREE.AmbientLight(0xffffff, 1);
+
+    const lightDirectional = new THREE.DirectionalLight(0xffffff, 1);
+    lightDirectional.position.set(50, 50, 50);
+
+    const lightHemisphere = new THREE.HemisphereLight(0xff0000, 0x00ff86, 1);
+
+    const lightPoint = new THREE.PointLight(0xffffff, 1, 300);
+    lightPoint.position.set(50, 50, 50);
+
+    const spotLight = new THREE.SpotLight(0xffffff);
+    spotLight.position.set(100, 1000, 100);
+
+    spotLight.castShadow = true;
+
+    spotLight.shadow.mapSize.width = 1024;
+    spotLight.shadow.mapSize.height = 1024;
+
+    spotLight.shadow.camera.near = 500;
+    spotLight.shadow.camera.far = 4000;
+    spotLight.shadow.camera.fov = 30;
+    
+    scene.add(lightDirectional);
+
+    function setLight(e) {
+        document.getElementById('lightList').value = e.target.value;
+        let selectedLight = document.getElementById("lightList").value;
+
+        if (selectedLight == "1") {
+            scene.add(lightAmbient);
+            scene.remove(lightDirectional);
+            scene.remove(lightHemisphere);
+            scene.remove(lightPoint);
+            scene.remove(spotLight);
+        }
+        else if (selectedLight == "2") {
+            scene.remove(lightAmbient);
+            scene.add(lightDirectional);
+            scene.remove(lightHemisphere);
+            scene.remove(lightPoint);
+            scene.remove(spotLight);
+        }
+        else if (selectedLight == "3") {
+            scene.remove(lightAmbient);
+            scene.remove(lightDirectional);
+            scene.add(lightHemisphere);
+            scene.remove(lightPoint);
+            scene.remove(spotLight);
+        }
+        else if (selectedLight == "4") {
+            scene.remove(lightAmbient);
+            scene.remove(lightDirectional);
+            scene.remove(lightHemisphere);
+            scene.add(lightPoint);
+            scene.remove(spotLight);
+        }
+        else if (selectedLight == "5") {
+            scene.remove(lightAmbient);
+            scene.remove(lightDirectional);
+            scene.remove(lightHemisphere);
+            scene.remove(lightPoint);
+            scene.add(spotLight);
+        }
+    }
+
+    // Main function
+    function main() {
+    {
+        const loader = new THREE.FontLoader();
+        
+        function loadFont(url) {
+            return new Promise((resolve, reject) => {
+                loader.load(url, resolve, undefined, reject);
+            });
+        }
+
+        async function geo() {
+            
+            // Wireframe Box Geometry - LineBasicMaterial
+            const width = 6;  
+            const height = 6;  
+            const depth = 6;  
+            const widthSegments = 4;  
+            const heightSegments = 4;  
+            const depthSegments = 4;  
+            const geometry = new THREE.BoxGeometry(
+                width, height, depth,
+                widthSegments, heightSegments, depthSegments);
+
+            const material = new THREE.LineBasicMaterial({color: 0xfffff});
+            const mesh = new THREE.LineSegments(geometry, material);
+            addObject(-1, .5, mesh);
+        }
+        geo();
+
+        async function geo_2() {
+            // Wireframe Cone Geometry - LineBasicMaterial
+            const radius =  1.0;  
+            const height = 10.0;  
+            const radialSegments = 10;  
+            const geometry = new THREE.ConeGeometry(radius, height, radialSegments);
+
+            const material = new THREE.LineBasicMaterial({color: 0xfffff});
+            const mesh = new THREE.LineSegments(geometry, material);
+            addObject(-.5, .5, mesh);
+        }
+        geo_2();
+
+        async function geo_3() {
+            // Wireframe Torus Geometry - LineBasicMaterial
+            const radius = 3;  
+            const tubeRadius = 2;  
+            const radialSegments = 8;  
+            const tubularSegments = 24;  
+            const geometry = new THREE.WireframeGeometry(new THREE.TorusGeometry(
+                radius, tubeRadius,
+                radialSegments, tubularSegments));
+
+            const material = new THREE.LineBasicMaterial({color: 0xfffff});
+            const mesh = new THREE.LineSegments(geometry, material);
+            addObject(0, .5, mesh);
+        }
+        geo_3();
+
+        async function geo_4() {
+            // Wireframe Octahedron Geometry - LineBasicMaterial
+            const radius = 5;
+            const geometry = new THREE.OctahedronGeometry(radius);
+            
+            const material = new THREE.LineBasicMaterial({color: 0xffff});
+            const mesh = new THREE.LineSegments(geometry, material);
+            addObject(.5, .5, mesh);
+        }
+        geo_4();
+
+        async function geo_5() {
+            // Wireframe Polyhedron Geometry - LineBasicMaterial
+            const verticesOfCube = [
+                -1, -1, -1,    1, -1, -1,    1,  1, -1,    -1,  1, -1,
+                -1, -1,  1,    1, -1,  1,    1,  1,  1,    -1,  1,  1,
+            ];
+            const indicesOfFaces = [
+                2, 1, 0,    0, 3, 2,
+                0, 4, 7,    7, 3, 0,
+                0, 1, 5,    5, 4, 0,
+                1, 2, 6,    6, 5, 1,
+                2, 3, 7,    7, 6, 2,
+                4, 5, 6,    6, 7, 4,
+            ];
+            const radius = 5;  
+            const detail = 1;  
+            const geometry = new THREE.PolyhedronGeometry(verticesOfCube, indicesOfFaces, radius, detail);
+            
+            const material = new THREE.LineBasicMaterial({color: 0xffff});
+            const mesh = new THREE.LineSegments(geometry, material);
+            addObject(1, .5, mesh);    
+        }
+        geo_5();
+
+        async function geo_6() {
+            // Box Geometry - MeshPhongMaterial
+            const width = 6;  
+            const height = 6;  
+            const depth = 6;  
+            const widthSegments = 4;  
+            const heightSegments = 4;  
+            const depthSegments = 4;  
+            const geometry = new THREE.BoxGeometry(
+                width, height, depth,
+                widthSegments, heightSegments, depthSegments);
+
+            function createMaterial() {
+                const material = new THREE.MeshPhongMaterial({
+                    side: THREE.DoubleSide,
+                    flatShading: true,
+                });
+                
+                const hue = Math.random();
+                const saturation = 1;
+                const luminance = .5;
+                material.color.setHSL(hue, saturation, luminance);
+                
+                return material;
+            }
+            const mesh = new THREE.Mesh(geometry, createMaterial());
+            addObject(-1, 0, mesh);
+        }
+        geo_6();
+
+        async function geo_7() {
+            // Cone Geometry - MeshPhongMaterial
+            const radius =  1.0;  
+            const height = 10.0;  
+            const radialSegments = 10;  
+            const geometry = new THREE.ConeGeometry(radius, height, radialSegments);
+            
+            // const material = new THREE.MeshNormalMaterial(); 
+            // const mesh = new THREE.Mesh(geometry, material);
+            function createMaterial() {
+                const material = new THREE.MeshPhongMaterial({
+                    side: THREE.DoubleSide,
+                    flatShading: true,
+                });
+                
+                const hue = Math.random();
+                const saturation = 1;
+                const luminance = .5;
+                material.color.setHSL(hue, saturation, luminance);
+                
+                return material;
+            }
+            const mesh = new THREE.Mesh(geometry, createMaterial());
+            addObject(-.5, 0, mesh);
+        }
+        geo_7();
+
+        async function geo_8() {
+            // Torus Geometry - MeshPhongMaterial
+            const radius = 3;  
+            const tubeRadius = 2;  
+            const radialSegments = 8;  
+            const tubularSegments = 24;  
+            const geometry = new THREE.TorusGeometry(
+                radius, tubeRadius,
+                radialSegments, tubularSegments);
+
+
+            function createMaterial() {
+                const material = new THREE.MeshPhongMaterial({
+                    side: THREE.DoubleSide,
+                    flatShading: true,
+                });
+                
+                const hue = Math.random();
+                const saturation = 1;
+                const luminance = .5;
+                material.color.setHSL(hue, saturation, luminance);
+                
+                return material;
+            }
+            const mesh = new THREE.Mesh(geometry, createMaterial());
+            addObject(0, 0, mesh);
+        }
+        geo_8();
+
+        async function geo_9() {
+            // Octahedron Geometry - MeshPhongMaterial
+            const radius = 5;  
+            const geometry = new THREE.OctahedronGeometry(radius);
+            
+            function createMaterial() {
+                const material = new THREE.MeshPhongMaterial({
+                    side: THREE.DoubleSide,
+                    flatShading: true,
+                });
+                
+                const hue = Math.random();
+                const saturation = 1;
+                const luminance = .5;
+                material.color.setHSL(hue, saturation, luminance);
+                
+                return material;
+            }
+            const mesh = new THREE.Mesh(geometry, createMaterial());
+            addObject(.5, 0, mesh);
+        }
+        geo_9();
+
+        async function geo_10() {
+            // Polyhedron Geometry - Mesh Phong Material
+            const verticesOfCube = [
+                -1, -1, -1,    1, -1, -1,    1,  1, -1,    -1,  1, -1,
+                -1, -1,  1,    1, -1,  1,    1,  1,  1,    -1,  1,  1,
+            ];
+            const indicesOfFaces = [
+                2, 1, 0,    0, 3, 2,
+                0, 4, 7,    7, 3, 0,
+                0, 1, 5,    5, 4, 0,
+                1, 2, 6,    6, 5, 1,
+                2, 3, 7,    7, 6, 2,
+                4, 5, 6,    6, 7, 4,
+            ];
+            const radius = 5;  
+            const detail = 1;  
+            const geometry = new THREE.PolyhedronGeometry(verticesOfCube, indicesOfFaces, radius, detail);
+            
+            function createMaterial() {
+                const material = new THREE.MeshPhongMaterial({
+                    side: THREE.DoubleSide,
+                    flatShading: true,
+                });
+                
+                const hue = Math.random();
+                const saturation = 1;
+                const luminance = .5;
+                material.color.setHSL(hue, saturation, luminance);
+                
+                return material;
+            }
+            const mesh = new THREE.Mesh(geometry, createMaterial());
+            addObject(1, 0, mesh);    
+        }
+        geo_10();
+
+        async function geo_11() {
+            
+            // Box Geometry - MeshNormalMaterial
+            const width = 6;  
+            const height = 6;  
+            const depth = 6;  
+            const widthSegments = 4;  
+            const heightSegments = 4;  
+            const depthSegments = 4;  
+            const geometry = new THREE.BoxGeometry(
+                width, height, depth,
+                widthSegments, heightSegments, depthSegments);
+
+            const material = new THREE.MeshNormalMaterial(); 
+            const mesh = new THREE.Mesh(geometry, material);
+            addObject(-1, -.5, mesh);
+        }
+        geo_11();
+
+        async function geo_12() {
+            // Cone Geometry - MeshNormalMaterial
+            const radius =  1.0;  
+            const height = 10.0;  
+            const radialSegments = 10;  
+            const geometry = new THREE.ConeGeometry(radius, height, radialSegments);
+
+            const material = new THREE.MeshNormalMaterial(); 
+            const mesh = new THREE.Mesh(geometry, material);
+            addObject(-.5, -.5, mesh);
+        }
+        geo_12();
+
+        async function geo_13() {
+            // Torus Geometry - MeshNormalMaterial
+            const radius = 3;  
+            const tubeRadius = 2;  
+            const radialSegments = 8;  
+            const tubularSegments = 24;  
+            const geometry = new THREE.TorusGeometry(
+                radius, tubeRadius,
+                radialSegments, tubularSegments);
+
+
+            const material = new THREE.MeshNormalMaterial(); 
+            const mesh = new THREE.Mesh(geometry, material);
+            addObject(0, -.5, mesh);
+        }
+        geo_13();
+
+        async function geo_14() {
+            // Octahedron Geometry - MeshNormalMaterial
+            const radius = 5;  
+            const geometry = new THREE.OctahedronGeometry(radius);
+            
+            const material = new THREE.MeshNormalMaterial(); 
+            const mesh = new THREE.Mesh(geometry, material);
+            addObject(.5, -.5, mesh);
+        }
+        geo_14();
+
+        async function geo_15() {
+            // Polyhedron Geometry - MeshNormalMaterial
+            const verticesOfCube = [
+                -1, -1, -1,    1, -1, -1,    1,  1, -1,    -1,  1, -1,
+                -1, -1,  1,    1, -1,  1,    1,  1,  1,    -1,  1,  1,
+            ];
+            const indicesOfFaces = [
+                2, 1, 0,    0, 3, 2,
+                0, 4, 7,    7, 3, 0,
+                0, 1, 5,    5, 4, 0,
+                1, 2, 6,    6, 5, 1,
+                2, 3, 7,    7, 6, 2,
+                4, 5, 6,    6, 7, 4,
+            ];
+            const radius = 4;  
+            const detail = 1;  
+            const geometry = new THREE.PolyhedronGeometry(verticesOfCube, indicesOfFaces, radius, detail);
+            
+            const material = new THREE.MeshNormalMaterial(); 
+            const mesh = new THREE.Mesh(geometry, material);
+            addObject(1, -.5, mesh);    
+        }
+        geo_15();
+
+    }
+
+    function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement;
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        const needResize = canvas.width !== width || canvas.height !== height;
+        if (needResize) {
+        renderer.setSize(width, height, false);
+        }
+        return needResize;
+    }
+
+    function render(time) {
+        time *= 0.002;
+
+        if (resizeRendererToDisplaySize(renderer)) {
+        const canvas = renderer.domElement;
+        camera.aspect = canvas.clientWidth / canvas.clientHeight;
+        camera.updateProjectionMatrix();
+        }
+
+        objects.forEach((obj, ndx) => {
+        const speed = .5 + ndx * .05;
+        const rot = time * speed;
+        obj.rotation.x = rot;
+        obj.rotation.y = rot;
+        });
+
+        renderer.render(scene, camera);
+
+        requestAnimationFrame(render);
+    }
+
+    requestAnimationFrame(render);
+    }
+
+    main();
+</script>
